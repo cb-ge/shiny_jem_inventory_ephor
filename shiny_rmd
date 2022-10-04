@@ -1,0 +1,63 @@
+---
+title: "EPHOR JEM Inventory Tool"
+author: "C. Ge"
+date: '2022-05-11'
+output: html_document
+runtime: shiny
+---
+
+Version 0.1: For review, discussion, and feedback. 
+
+[Introduction text and disclaimer here]
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(shiny)
+library(openxlsx)
+library(shiny)
+library(reactable)
+library(rsconnect)
+```
+
+
+```{r loading, echo = FALSE, include=FALSE}
+
+jems<-read.xlsx("Mock_master_JEM_table.xlsx")
+
+names(jems)
+```
+
+
+```{r make subset table, echo=F, include=F}
+
+names(jems)
+
+jems.simp<-jems[,c(1,4,5,2,6,9)] #main table
+
+jems.exp<-jems[,c(1,3,7,10,11)] #sub table
+
+```
+
+```{r test2, echo=F, include=T}
+
+ui <- fluidPage(
+  reactableOutput("table")
+)
+
+server <- function(input, output) {
+  output$table <- renderReactable({
+    reactable(jems.simp, 
+              filterable = TRUE,
+              columns = list(JEM_metric = colDef(filterable = FALSE)),
+              details = function(index){
+                jems.nested<-jems.exp[jems.exp$JEM_name ==jems.simp$JEM_name[index],]
+                htmltools::div(style = "padding: 16px",
+                reactable(jems.nested, outlined = TRUE))
+              })
+  })
+}
+
+shinyApp(ui, server)
+```
